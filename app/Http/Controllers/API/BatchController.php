@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\DevelopmentPartner;
 use App\Models\Provider;
 use App\Models\TrainingBatch;
+use App\Models\UserType;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -15,11 +16,17 @@ class BatchController extends Controller
     public function index(Request $request)
     {
         try {
+            $user = auth()->user();
+
+            $userType = UserType::where('role_id', $user['role_id'])->first();
+
+            $provider_id = $userType['provider_id'];
+
             if ($request->input('pageSize') !== null) {
                 $pageSize = $request->input('pageSize', 12);
-                $batches = TrainingBatch::with('training', 'training.trainingTitle', 'trainingBatchSchedule')->paginate($pageSize);
+                $batches = TrainingBatch::with('training', 'training.trainingTitle', 'trainingBatchSchedule')->where('provider_id', $provider_id)->paginate($pageSize);
             } else {
-                $batches = TrainingBatch::all();
+                $batches = TrainingBatch::where('provider_id', $provider_id)->get();
             }
             $user_id = Auth::user()->id;
             $role = Auth::user()->role->name;

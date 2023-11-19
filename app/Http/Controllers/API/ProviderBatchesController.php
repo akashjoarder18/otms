@@ -33,7 +33,7 @@ class ProviderBatchesController extends Controller
                     return response()->json([
                         'success' => false,
                         'error' => true,
-                        'message' => 'already has link with batches',
+                        'message' =>  __('provider-list.already_link_batches'),
                     ]);
                 } else {
                     $training_batch->provider_id = $provider_id;
@@ -44,7 +44,7 @@ class ProviderBatchesController extends Controller
             return response()->json([
                 'success' => true,
                 'error' => false,
-                'message' => 'Provider Linked With Batches Successfully',
+                'message' => __('provider-list.provider_link_batch_successfully'),
             ]);
         } catch (JWTException $e) {
             return response()->json([

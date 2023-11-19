@@ -53,6 +53,6 @@ class TrainingBatch extends Model
     public function trainees()
     {
         return $this->hasMany(TrainingApplicant::class, 'BatchId')
-            ->where('IsSelected', 1);
+            ->where('IsTrainee', 1);
     }
 }

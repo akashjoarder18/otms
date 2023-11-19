@@ -82,11 +82,11 @@ class RoleController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function edit(Role $role)
+    public function edit(Role $tmsRole)
     {
         try {
-            $role = $this->roleRepository->details($role->id);
-            $rolePermissions = $role->permissions->pluck('name')->toArray();
+            $role = $this->roleRepository->details($tmsRole->id);
+            $rolePermissions = $tmsRole->permissions->pluck('name')->toArray();
 
             $permissions = $this->permissionRepository->all();
             return response()->json([

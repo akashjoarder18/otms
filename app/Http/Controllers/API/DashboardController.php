@@ -4,19 +4,20 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Models\Batch;
+use App\Models\BatchScheduleDetail;
 use App\Models\ClassAttendance;
 use App\Models\District;
 use App\Models\Division;
-use App\Models\Profile;
 use App\Models\Provider;
+use App\Models\ProvidersTrainer;
+use App\Models\TrainerProfile;
 use App\Models\Training;
 use App\Models\TrainingApplicant;
 use App\Models\TrainingBatch;
 use App\Models\TrainingTitle;
 use App\Models\Upazila;
 use App\Models\User;
-use App\Repositories\Interfaces\DivisionRepositoryInterface;
-use Carbon\Carbon;
+use App\Models\UserType;
 use Illuminate\Http\Request;
 use Tymon\JWTAuth\Exceptions\JWTException;
 
@@ -26,30 +27,72 @@ class DashboardController extends Controller
     {
         // startDate < DATE_ADD (CURDATE(), INTERVAL duration DAY);
         try {
+            $user = auth()->user();
+
+            $userType = UserType::where('role_id', $user['role_id'])->first();
+            
+
+            $provider_id = 1;
+
             $totalDisision = Division::count();
             $totalDistrict = District::count();
             $totalUpazila = Upazila::count();
-            $totalBatch = TrainingBatch::count();
-            $totalStudent = TrainingApplicant::where('IsSelected', 1)
-                ->count();
+
+            if ($provider_id) {
+
+
+                $totalBatchData = TrainingBatch::where('provider_id', $provider_id)->whereNotNull('startDate')->get();
+ 
+               
+                $runningBatch = TrainingBatch::where('provider_id', $provider_id)->whereNotNull('startDate')
+                    ->whereRaw('date(startDate) <=  CURDATE()')
+                    ->whereRaw('DATE_ADD(date(startDate), INTERVAL duration DAY) >=  CURDATE()')
+                    ->count();
+                $totalBatch = count($totalBatchData);
+                $totalTrainer = ProvidersTrainer::where('provider_id', $provider_id)->count();
+                $totalStudent = 0;
+                if (count($totalBatchData) > 0) {
+                    
+                    foreach ($totalBatchData as $trainee) {
+                      
+                        $student = TrainingApplicant::where('BatchId',$trainee->id)->where('IsTrainee', 1)->first();
+                        if($student){
+                            $totalStudent = $totalStudent+1;
+                        }
+                    }
+                }
+            } else {
+                $totalBatch = TrainingBatch::count();
+                $runningBatch = TrainingBatch::whereNotNull('startDate')
+                    ->whereRaw('date(startDate) <=  CURDATE()')
+                    ->whereRaw('DATE_ADD(date(startDate), INTERVAL duration DAY) >=  CURDATE()')
+                    ->count();
+                $totalTrainer = TrainerProfile::count();
+                $totalStudent = TrainingApplicant::where('IsTrainee', 1)
+                    ->count();
+                
+            }
+
             $totalProvider = Provider::count();
             $totalCourse = Training::count();
-            $totalProdiver = Provider::count();
-            $runningBatch = TrainingBatch::whereNotNull('startDate')
-                ->whereRaw('date(startDate) <=  CURDATE()')
-                ->whereRaw('DATE_ADD(date(startDate), INTERVAL duration DAY) >=  CURDATE()')
-                ->count();
+            //$totalProdiver = Provider::count();
+
             $totalCoordinator = User::whereHas('role', function ($query) {
-                $query->where('name', 'Trainer');
-            })->count();
-            $totalTrainer = User::whereHas('role', function ($query) {
                 $query->where('name', 'Coordinator');
             })->count();
-            $totalPresentToday = 0;/*ClassAttendance::whereRaw('attendant_date=CURDATE()')
-                ->where('is_present', 1)
-                ->count();*/
 
-
+            
+            $totalPresentToday = BatchScheduleDetail::whereRaw('date=CURDATE()')->get();
+            $totalPresent = 0;
+            if (count($totalPresentToday) > 0) {
+                foreach ($totalPresentToday as $row) {
+                    $present = ClassAttendance::where('batch_schedule_detail_id', $row['id'])->where('is_present', 1)->get();
+                    if ($present) {
+                        $totalPresent = count($present) + $totalPresent;
+                    }
+                }
+            }
+            $todaysTotalPresent = $totalPresent;
             return response()->json([
                 'success' => true,
                 'data' => [
@@ -60,11 +103,10 @@ class DashboardController extends Controller
                     'totalStudent' => $totalStudent,
                     'totalProvider' => $totalProvider,
                     'totalCourse' => $totalCourse,
-                    'totalProdiver' => $totalProdiver,
                     'runningBatch' => $runningBatch,
                     'totalTrainer' => $totalTrainer,
                     'totalCoordinator' => $totalCoordinator,
-                    'totalPresentToday' => $totalPresentToday,
+                    'totalPresentToday' => $todaysTotalPresent,
                 ],
             ]);
         } catch (JWTException $e) {

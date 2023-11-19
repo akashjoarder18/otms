@@ -23,6 +23,8 @@ return [
     "email_email" => "Please enter a valid email address.",
     "address_regex" => "The address field should only contain letters, numbers, hyphens, commas, colons, slashes, and spaces.",
     "web_url_regex" => "Please enter a valid web URL.",
+    "already_link_batches" => "already has link with batches",
+    "provider_link_batch_successfully" => "Provider Linked With Batches Successfully",
    
    
 

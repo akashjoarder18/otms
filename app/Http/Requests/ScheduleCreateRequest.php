@@ -28,7 +28,7 @@ class ScheduleCreateRequest extends FormRequest
     {
         return [
             'training_batch_id' => 'required|integer|exists:training_batches,id|unique:tms_training_batch_schedules,training_batch_id',
-            'class_days' => ['required', 'string', new ClassDayVerifyRule],
+            'class_days' => ['required', 'string'],
             'class_time' => 'required|string|date_format:H:i',
             'class_duration' => 'required|integer|max:10',
         ];
