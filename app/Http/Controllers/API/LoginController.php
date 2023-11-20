@@ -43,14 +43,21 @@ class LoginController extends Controller
         Auth::login($user);
 
         if (isset($credentials['email'])) {
-            $user_info = User::with('role')->where('email', $credentials['email'])->first();
+            $user_info = User::where('email', $credentials['email'])->first();
+            $profileEmail = $credentials['email'];
+
+            $userType = UserType::with('profile','role')
+                    ->whereHas('profile', function ($query) use ($profileEmail) {
+                        $query->where('Email',$profileEmail);
+                    })->first();
+
         } elseif (isset($credentials['username'])) {
             $user_info = User::with('role')->where('username', $credentials['username'])->first();
         }
 
         if (!is_null($user_info)) {
 
-            if ($user_info->email_verified_at == null) {
+            /*if ($user_info->email_verified_at == null) {
                 Auth::logout();
                 return response()->json([
                     'success' => false,
@@ -58,7 +65,7 @@ class LoginController extends Controller
                     'errorType' => 'notVerified',
                     'message' => __('login.email_not_verified'),
                 ], 401);
-            }
+            }*/
 
             if (Hash::check($credentials['password'], $user_info->password)) {
 
@@ -81,9 +88,9 @@ class LoginController extends Controller
 
                 // Add Token
                 $token = auth()->attempt($credentials);
-                $role = Role::with('permissions', 'user')->where('id', '=', $user_info->role->id)->first();
+                $role = Role::with('permissions')->where('id', '=', $userType->role_id)->first();
                 $accessPermissions = $role->permissions;
-                return $this->authenticated($token, $user_info, $accessPermissions);
+                return $this->authenticated($token, $user_info, $userType, $accessPermissions);
 
             } else {
                 return response()->json([
@@ -110,7 +117,7 @@ class LoginController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    protected function authenticated($token, $user_info, $accessPermissions)
+    protected function authenticated($token, $user_info, $userType, $accessPermissions)
     {
         // dd($user_info->role->name);
         return response()->json([
@@ -121,6 +128,7 @@ class LoginController extends Controller
             //'expires_in' => auth()->factory()->getTTL() * 60,
             'expires_in' => Carbon::now()->addMinutes(260),
             'user' => $user_info,
+            'userType' => $userType,
             'accessPermissions' => $accessPermissions,
         ]);
     }

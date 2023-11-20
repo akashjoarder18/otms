@@ -4,6 +4,7 @@ namespace App\Traits;
 
 use App\Models\FinalSelection;
 use App\Models\PrelimarySelection;
+use App\Models\UserType;
 
 trait UtilityTrait
 {
@@ -207,5 +208,13 @@ trait UtilityTrait
         $classDuration[600] = '10hour';
 
         return $classDuration;
+    }
+
+    public function authUser($email){
+       return $userType = UserType::with('profile','role')
+                    ->whereHas('profile', function ($query) use ($email) {
+                        $query->where('Email',$email);
+                    })->first();
+        
     }
 }

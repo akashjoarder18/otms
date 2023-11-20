@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class PrelimarySelection extends Model
 {
     use HasFactory;
-    protected $table = "tmsz_prelimary_selections";
+    protected $table = "tms_prelimary_selections";
     protected $guarded = [];
 
     public function user()

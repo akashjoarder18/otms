@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class FinalSelection extends Model
 {
     use HasFactory;
-    protected $table = "tmsz_final_selections";
+    protected $table = "tms_final_selections";
     protected $guarded = [];
 
 }

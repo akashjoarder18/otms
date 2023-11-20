@@ -23,7 +23,7 @@ class RoleRepository implements RoleRepositoryInterface
 
     public function details($id)
     {
-        return Role::with('permissions','user')->where('id', '=', $id)->first();
+        return Role::with('permissions')->where('id', '=', $id)->first();
     }
 
     public function find($id)

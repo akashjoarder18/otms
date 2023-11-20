@@ -9,16 +9,18 @@ use App\Models\TrainingBatch;
 use App\Models\UserType;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Traits\UtilityTrait;
 
 class BatchController extends Controller
 {
+    use UtilityTrait;
     //
     public function index(Request $request)
     {
         try {
             $user = auth()->user();
-
-            $userType = UserType::where('role_id', $user['role_id'])->first();
+            $userType = $this->authUser($user->email);
+            
 
             $provider_id = $userType['provider_id'];
 
@@ -29,8 +31,7 @@ class BatchController extends Controller
                 $batches = TrainingBatch::where('provider_id', $provider_id)->get();
             }
             $user_id = Auth::user()->id;
-            $role = Auth::user()->role->name;
-
+            $role = $userType->role->name;
             return response()->json([
                 'success' => true,
                 'error' => false,

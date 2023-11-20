@@ -13,6 +13,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\Auth;
+use App\Traits\UtilityTrait;
 
 class PermissionController extends Controller
 {
@@ -20,6 +21,7 @@ class PermissionController extends Controller
     /*
      * Handle Bridge Between Database and Business layer
      */
+    use UtilityTrait;
     private $permissionRepository;
     public function __construct(PermissionRepositoryInterface $permissionRepository)
     {
@@ -76,12 +78,13 @@ class PermissionController extends Controller
 
         try {
             $user = auth()->user();
+            $userType = $this->authUser($user->email);
             //$permission = $this->permissionRepository->details($permission->id);
             if (!is_null($user)) {
                 $permissions = Role::select('permissions.*')
                     ->join('role_has_permissions', 'role_has_permissions.role_id', '=', 'roles.id')
                     ->join('permissions', 'permissions.id', '=', 'role_has_permissions.permission_id')
-                    ->where('roles.id', '=', $user->role_id)
+                    ->where('roles.id', '=', $userType->role->id)
                     ->get();
     
                 $route_permissions = $permissions->pluck('name')->toArray();

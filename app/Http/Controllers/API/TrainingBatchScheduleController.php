@@ -10,6 +10,7 @@ use App\Models\TrainingBatchSchedule;
 use App\Repositories\BatchScheduleDetailRepository;
 use App\Repositories\ClassAttendanceRepository;
 use App\Repositories\TrainingBatchScheduleRepository;
+use App\Traits\UtilityTrait;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -18,6 +19,7 @@ class TrainingBatchScheduleController extends Controller
     /*
      * Handle Bridge Between Database and Business layer
      */
+    use UtilityTrait;
     private $trainingBatchScheduleRepository, $batchScheduleDetailRepository, $classAttendanceRepository;
     public function __construct(
         TrainingBatchScheduleRepository $trainingBatchScheduleRepository,
@@ -48,9 +50,7 @@ class TrainingBatchScheduleController extends Controller
                 'class_days' => $batch_schedule->class_days,
             ];
 
-
             $this->batchScheduleDetailRepository->store($detail_data);
-
 
             return response()->json([
                 'success' => true,
@@ -77,9 +77,10 @@ class TrainingBatchScheduleController extends Controller
                 ->where('date', today())
                 ->first();
 
-            $user = Auth::user();
+            $user = auth()->user();
+            $userType = $this->authUser($user->email);
             $user_id = $user->id;
-            $user_role = $user->role->name;
+            $user_role = $userType->role->name;
             $data = $classScheduleDetails;
             $classStatus = '';
             if ($classScheduleDetails) {
@@ -140,9 +141,10 @@ class TrainingBatchScheduleController extends Controller
         try {
             $classSchedule = TrainingBatchSchedule::with('trainingBatch')
                 ->where('id', $ScheduleId)->first();
-            $user = Auth::user();
+            $user = auth()->user();
+            $userType = $this->authUser($user->email);
             $user_id = $user->id;
-            $user_role = $user->role->name;
+            $user_role = $userType->role->name;
             $data['schedule'] = $classSchedule;
             $attendance = ClassAttendance::with('user')
                 ->where('training_batch_schedule_id', $ScheduleId)

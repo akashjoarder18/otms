@@ -20,16 +20,17 @@ use App\Models\User;
 use App\Models\UserType;
 use Illuminate\Http\Request;
 use Tymon\JWTAuth\Exceptions\JWTException;
+use App\Traits\UtilityTrait;
 
 class DashboardController extends Controller
 {
+    use UtilityTrait;
     public function summery()
     {
         // startDate < DATE_ADD (CURDATE(), INTERVAL duration DAY);
         try {
             $user = auth()->user();
-
-            $userType = UserType::where('role_id', $user['role_id'])->first();
+            $userType = $this->authUser($user->email);
             
 
             $provider_id = 1;
@@ -77,9 +78,7 @@ class DashboardController extends Controller
             $totalCourse = Training::count();
             //$totalProdiver = Provider::count();
 
-            $totalCoordinator = User::whereHas('role', function ($query) {
-                $query->where('name', 'Coordinator');
-            })->count();
+            $totalCoordinator = 0;
 
             
             $totalPresentToday = BatchScheduleDetail::whereRaw('date=CURDATE()')->get();

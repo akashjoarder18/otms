@@ -33,7 +33,6 @@ class User extends Authenticatable implements JWTSubject
         'username',
         'email',
         'password',
-        'role_id',
         'reg_id',
         'phone_number',
         'email_verified_at',
@@ -63,14 +62,11 @@ class User extends Authenticatable implements JWTSubject
      *
      * @return response()
      */
-    public function role()
-    {
-        return $this->belongsTo(Role::class);
-    }
+  
 
     public function userType()
     {
-        return $this->hasOne(UserType::class);
+        return $this->hasMany(UserType::class);
     }
 
     public function userDetail()
