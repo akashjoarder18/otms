@@ -10,7 +10,7 @@ class RoleRepository implements RoleRepositoryInterface
 {
     public function all()
     {
-        return Role::with('permissions','user')->get();
+        return Role::with('permissions','userType')->get();
     }
 
 
