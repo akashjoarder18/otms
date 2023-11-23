@@ -189,12 +189,15 @@ Route::group(['middleware' => 'api'], function ($routes) {
      */
     Route::group(['middleware' => ['auth.jwt', 'localization'], 'prefix' => 'batches'], function () {
         Route::get('/', [BatchController::class, 'index']);
+        Route::get('/all', [BatchController::class, 'allBatches']);
+        Route::get('/{id}/show', [BatchController::class, 'batchShow']);
+        Route::get('/provider', [ProviderBatchesController::class, 'index']);
         Route::post('/create', [BatchController::class, 'store']);
-        Route::get('/{provider}/show', [BatchController::class, 'show']);
         Route::get('/{provider}/edit', [BatchController::class, 'edit']);
         Route::patch('/{provider}/update', [BatchController::class, 'update']);
         Route::get('/{provider}/delete', [BatchController::class, 'destroy']);
     });
+
 
     /**
      * Provider Batches api routes   trainers
@@ -254,7 +257,8 @@ Route::group(['middleware' => 'api'], function ($routes) {
         Route::post('/create', [PermissionController::class, 'store']);
         Route::get('/role', [PermissionController::class, 'permissions']);
     });
-
-    /* ApI inspaction  */
-    Route::apiResource('inspection', InspectionController::class);
+    Route::group(['middleware' => 'auth.jwt'], function () {
+        /* ApI inspaction  */
+        Route::apiResource('inspection', InspectionController::class);
+    });
 });

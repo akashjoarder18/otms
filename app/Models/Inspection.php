@@ -9,28 +9,16 @@ class Inspection extends Model
 {
     use HasFactory;
     protected $table = "tms_inspections";
+    protected $guarded = ['id'];
 
-    protected $fillable = [
-        'batche_id',
-        'user_id',
-        'classnum',
-        'labsize',
-        'electricity',
-        'internet',
-        'labbill',
-        'labattandance',
-        'computer',
-        'router',
-        'projectortv',
-        'usinglaptop',
-        'labsecurity',
-        'labreagister',
-        'classreagulrity',
-        'teacattituted',
-        'teaclabatten',
-        'upojelaodit',
-        'upozelamonotring',
-        'remark'
-    ];
+    public function batch()
+    {
+        return $this->belongsTo(TrainingBatch::class, 'batch_id');
+    }
+
+    public function createdBy()
+    {
+        return $this->belongsTo(Profile::class, 'created_by');
+    }
 
 }

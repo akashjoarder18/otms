@@ -10,6 +10,7 @@ use App\Models\TrainingBatchSchedule;
 use App\Repositories\BatchScheduleDetailRepository;
 use App\Repositories\ClassAttendanceRepository;
 use App\Repositories\TrainingBatchScheduleRepository;
+use Carbon\Carbon;
 use App\Traits\UtilityTrait;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -83,6 +84,7 @@ class TrainingBatchScheduleController extends Controller
             $user_role = $userType->role->name;
             $data = $classScheduleDetails;
             $classStatus = '';
+
             if ($classScheduleDetails) {
                 $today = date('Y-m-d');
 
@@ -96,17 +98,12 @@ class TrainingBatchScheduleController extends Controller
                     $classStatus = 1;
 
                     $attendance = array();
-                    $attendance['training_batch_schedule_id'] = $classSchedule->id;
-                    if ($user_role == 'Trainee') {
-                        $attendance['trainee_id'] = $user_id;
-                    }
-                    if ($user_role == 'Trainer') {
-                        $attendance['trainer_id'] = $user_id;
-                    }
+                    $attendance['batch_schedule_detail_id'] = $classScheduleDetails->id;
+                    $attendance['ProfileId'] = 1;
                     $attendance['is_present'] = 1;
-                    $attendance['attendant_date'] = $today;
+                    $attendance['joining_time'] = Carbon::now()->format('H:i:s');
 
-                    $myAttendant = $this->classAttendanceRepository->checkAttendants($classSchedule->id, $user_id);
+                    $myAttendant = $this->classAttendanceRepository->checkAttendants($classScheduleDetails->id, 1);
 
                     if (!$myAttendant) {
                         $myAttendant = $this->classAttendanceRepository->store($attendance);
@@ -119,7 +116,7 @@ class TrainingBatchScheduleController extends Controller
             return response()->json([
                 'success' => true,
                 'error' => false,
-                'data' => $classScheduleId,
+                'data' => $classScheduleDetails,
                 'classStatus' => $classStatus,
                 'usrRole' => $user_role,
                 'message' => 'Your attendance counted automatically',

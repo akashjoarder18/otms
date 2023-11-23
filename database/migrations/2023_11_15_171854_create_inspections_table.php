@@ -12,28 +12,29 @@ return new class extends Migration {
      */
     public function up()
     {
-        Schema::create('inspections', function (Blueprint $table) {
+        Schema::create('tms_inspections', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('batche_id');
-            $table->foreignId('user_id');
-            $table->tinyInteger('classnum');
-            $table->tinyInteger('labsize');
+            $table->foreignId('batch_id');
+            $table->tinyInteger('class_no');
+            $table->tinyInteger('lab_size');
             $table->tinyInteger('electricity');
             $table->tinyInteger('internet');
-            $table->tinyInteger('labbill');
-            $table->tinyInteger('labattandance');
+            $table->tinyInteger('lab_bill');
+            $table->tinyInteger('lab_attendance');
             $table->tinyInteger('computer');
             $table->tinyInteger('router');
-            $table->tinyInteger('projectortv');
-            $table->tinyInteger('usinglaptop');
-            $table->tinyInteger('labsecurity');
-            $table->tinyInteger('labreagister');
-            $table->tinyInteger('classreagulrity');
-            $table->tinyInteger('teacattituted');
-            $table->tinyInteger('teaclabatten');
-            $table->tinyInteger('upojelaodit');
-            $table->string('upozelamonotring');
+            $table->tinyInteger('projector');
+            $table->tinyInteger('student_laptop');
+            $table->tinyInteger('lab_security');
+            $table->tinyInteger('lab_register');
+            $table->tinyInteger('class_regularity');
+            $table->tinyInteger('trainer_attituted');
+            $table->tinyInteger('trainer_tab_attendance');
+            $table->tinyInteger('upazila_audit');
+            $table->tinyInteger('upazila_monitoring');
             $table->string('remark');
+            $table->unsignedBigInteger('created_by')->index()->nullable();
+            $table->unsignedBigInteger('updated_by')->index()->nullable();
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('Updated_at')->useCurrent();
         });

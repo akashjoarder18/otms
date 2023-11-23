@@ -26,6 +26,7 @@ Route::group(['middleware' => ['auth.jwt', 'localization']], function () {
             Route::post('/start-class', [AttendanceController::class, 'start'])->name('attendance.start');
             Route::post('/end-class', [AttendanceController::class, 'end'])->name('attendance.end');
             Route::post('/take', [AttendanceController::class, 'take'])->name('attendance.take');
+            Route::get('/show/{schedule_details_id}', [AttendanceController::class, 'showAttendance'])->name('attendance.show');
         });
     });
 });

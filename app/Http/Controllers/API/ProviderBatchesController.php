@@ -5,11 +5,51 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ProviderBatchesRequest;
 use App\Models\TrainingBatch;
+use App\Models\UserType;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Tymon\JWTAuth\Exceptions\JWTException;
+use App\Traits\UtilityTrait;
 
 class ProviderBatchesController extends Controller
 {
+    use UtilityTrait;
+    public function index()
+    {
+        try {
+            $user = auth()->user();
+            $userType = $this->authUser($user->email);
+
+            $provider_id = $userType['provider_id'];            
+
+            if ($provider_id) {
+                $batches = TrainingBatch::with('training', 'training.trainingTitle', 'trainingBatchSchedule')
+                    ->where('provider_id', $provider_id)
+                    ->get();
+                                        
+                $user_id = Auth::user()->id;
+                $role = $userType->role->name;
+
+                return response()->json([
+                    'success' => true,
+                    'error' => false,
+                    'data' => $batches,
+                    'user_id' => $user_id,
+                    'role' => $role,
+                ]);
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'message' => "User Not a Provider",
+                ]);
+            }
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ]);
+        }
+    }
     //
     public function store(ProviderBatchesRequest $request)
     {

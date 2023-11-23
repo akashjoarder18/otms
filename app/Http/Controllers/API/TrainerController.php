@@ -4,19 +4,27 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\UserType;
 use App\Models\ProvidersTrainer;
 use App\Http\Requests\TrainerBatchesRequest;
 use App\Models\TrainerProfile;
 use Illuminate\Http\Request;
 use Tymon\JWTAuth\Exceptions\JWTException;
+use App\Traits\UtilityTrait;
 
 class TrainerController extends Controller
 {
-    //
+    use UtilityTrait;
     public function index(Request $request)
     {
         try {
-            $trainers = TrainerProfile::with('profile')->get();
+            $user = auth()->user();
+            $userType = $this->authUser($user->email);
+
+            $trainers = UserType::with('profile','role')->where('provider_id',$userType->provider_id)->whereHas('role', function ($query) {
+                $query->where('name', '=', 'trainer')
+                    ->orWhere('name', '=', 'Trainer');
+            })->get();
 
             return response()->json([
                 'success' => true,

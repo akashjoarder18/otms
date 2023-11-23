@@ -11,14 +11,18 @@ use App\Models\ProvidersTrainer;
 use App\Models\TrainingBatch;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use App\Traits\UtilityTrait;
 
 class AttendanceController extends Controller
 {
+    use UtilityTrait;
     public function batchList()
     {
         try {
             $user = auth()->user();
-            $trainer = ProvidersTrainer::where('ProfileId', 816)->first();
+            $userType = $this->authUser($user->email);
+
+            $trainer = ProvidersTrainer::where('ProfileId', $userType->ProfileId)->first();
             if ($trainer == null) {
                 return response()->json([
                     'success' => false,
@@ -186,6 +190,26 @@ class AttendanceController extends Controller
         return response()->json([
             'success' => true,
             'data' => 'Attendance updated successfully',
+        ]);
+    }
+
+    public function showAttendance($schedule_detail_id)
+    {
+        try {
+            $trainees = ClassAttendance::with('profile', 'scheduleDetail')
+                ->where('batch_schedule_detail_id', $schedule_detail_id)
+                ->get();
+        } catch (\Throwable $th) {
+            return response()->json([
+                'success' => false,
+                'error' => true,
+                'message' => $th->getMessage(),
+            ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $trainees,
         ]);
     }
 }

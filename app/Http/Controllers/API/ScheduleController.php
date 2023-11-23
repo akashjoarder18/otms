@@ -10,15 +10,18 @@ use App\Models\TrainingBatch;
 use App\Models\TrainingBatchSchedule;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use App\Traits\UtilityTrait;
 
 class ScheduleController extends Controller
 {
+    use UtilityTrait;
     public function store(ScheduleCreateRequest $request)
     {
         $validated_data = $request->all();
         try {
             $user = auth()->user();
-            $provider = Provider::first();
+            $userType = $this->authUser($user->email);
+            $provider = Provider::find($userType->provider_id);
             if ($provider == null) {
                 return response()->json([
                     'success' => false,

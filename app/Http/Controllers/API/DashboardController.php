@@ -33,7 +33,7 @@ class DashboardController extends Controller
             $userType = $this->authUser($user->email);
             
 
-            $provider_id = 1;
+            $provider_id = $userType->provider_id;
 
             $totalDisision = Division::count();
             $totalDistrict = District::count();

@@ -9,13 +9,10 @@ use Exception;
 class ClassAttendanceRepository implements ClassAttendanceRepositoryInterface
 {
 
-    public function checkAttendants($batchScheduleId, $attendanceId)
+    public function checkAttendants($batchScheduleDetailId, $attendanceId)
     {
-        $today = date('Y-m-d');
-        return ClassAttendance::where('training_batch_schedule_id', '=', $batchScheduleId)
-            ->where('trainee_id', '=', $attendanceId)
-            ->orWhere('trainer_id', '=', $attendanceId)
-            ->where('attendant_date', '=', $today)
+        return ClassAttendance::where('batch_schedule_detail_id', '=', $batchScheduleDetailId)
+            ->where('ProfileId', '=', $attendanceId)
             ->first();
     }
 
