@@ -25,7 +25,7 @@ class ProviderBatchesController extends Controller
                     ->where('provider_id', $provider_id)
                     ->get();
 
-                $user_id = Auth::user()->id;
+                $user_id = $user->id;
                 $role = $userType->role->name;
 
                 return response()->json([
