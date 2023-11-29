@@ -39,6 +39,8 @@ class TrainerController extends Controller
         }
     }
 
+    // trainer store
+
     public function store(TrainerBatchesRequest $request)
     {
         try {
