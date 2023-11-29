@@ -11,15 +11,9 @@ class Upazila extends Model
     protected $table = "geoupazilas";
     protected $guarded = [];
 
-
-    /**
-     * Write code on Method
-     *
-     * @return response()
-     */
     public function district()
     {
-        return $this->belongsTo(District::class,'ParentCode','Code');
+        return $this->belongsTo(District::class, 'ParentCode', 'Code');
     }
 
     public function userType()

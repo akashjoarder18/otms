@@ -94,7 +94,7 @@ Route::group(['middleware' => 'api'], function ($routes) {
     Route::group(['middleware' => 'auth.jwt', 'prefix' => 'admins'], function () {
         Route::get('/', [AdminController::class, 'index']);
         Route::post('/create', [AdminController::class, 'store']);
-        Route::get('/admin/{userId}', [AdminController::class, 'show']);
+        Route::get('/admin/{userProfileId}', [AdminController::class, 'show']);
         Route::get('/{tmsUserType}/edit', [AdminController::class, 'edit']);
         Route::patch('/{tmsUserType}/update', [AdminController::class, 'update']);
         Route::get('/{tmsUserType}/delete', [AdminController::class, 'destroy']);
@@ -170,6 +170,7 @@ Route::group(['middleware' => 'api'], function ($routes) {
         Route::get('/{tmsProvider}/edit', [ProviderController::class, 'edit']);
         Route::patch('/{tmsProvider}/update', [ProviderController::class, 'update']);
         Route::get('/{tmsProvider}/delete', [ProviderController::class, 'destroy']);
+        Route::get('/all', [ProviderController::class, 'providerBatches']);
     });
 
     /**
@@ -257,8 +258,19 @@ Route::group(['middleware' => 'api'], function ($routes) {
         Route::post('/create', [PermissionController::class, 'store']);
         Route::get('/role', [PermissionController::class, 'permissions']);
     });
+    Route::group(['middleware' => 'auth.jwt', 'prefix' => 'dashboardtotal'], function () {
+        Route::get('/superadmin', [DashboardController::class, 'dashboardTotalsuoeradmin'])->name('dash.super');
+    });
     Route::group(['middleware' => 'auth.jwt'], function () {
         /* ApI inspaction  */
         Route::apiResource('inspection', InspectionController::class);
+        Route::get('/batchlist', [DashboardController::class, 'getAllbatches'])->name('batchlist');
+        Route::get('/providerlist', [DashboardController::class, 'getAllProviders'])->name('providerlist');
+        Route::get('/districtslist', [DashboardController::class, 'getAlldistricts'])->name('districts');
+        Route::get('/upazilaslist', [DashboardController::class, 'getAllupazilas'])->name('upazilas');
+        Route::get('/partnerslist', [DashboardController::class, 'getAllpartners'])->name('partners');
+        Route::get('/trainerslist', [DashboardController::class, 'getAlltrainers'])->name('trainers');
+        Route::get('/traineeslist', fn() => 'Waiting......')->name('trainees');
+        Route::get('/allowancelist', fn() => 'Waiting......')->name('allowance');
     });
 });

@@ -10,9 +10,9 @@ class UpazilaRepository implements UpazilaRepositoryInterface
     public function all($code = null)
     {
         if ($code) {
-            
+
             $upazilas = Upazila::with('district', 'district.division')
-            ->whereHas('district', function ($query) use ($code) {
+                ->whereHas('district', function ($query) use ($code) {
                     $query->where('Code', $code);
                 })
                 ->get();

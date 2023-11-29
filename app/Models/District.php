@@ -11,17 +11,22 @@ class District extends Model
     protected $table = "geodistricts";
     protected $guarded = [];
 
-
-    /**
-     * Write code on Method
-     *
-     * @return response()
-     */
     public function division()
     {
-        return $this->belongsTo(Division::class,'ParentCode','Code');
+        return $this->belongsTo(Division::class, 'ParentCode', 'Code');
     }
 
+    // public function upazila()
+    // {
+    //     return $this->belongsTo(Division::class, 'ParentCode', 'Code');
+
+    // }
+
+
+    public function upazilas()
+    {
+        return $this->hasMany(Upazila::class, 'ParentCode', 'Code');
+    }
     public function userType()
     {
         return $this->hasMany(UserType::class);

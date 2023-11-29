@@ -12,6 +12,15 @@ class ProviderRepository implements ProviderRepositoryInterface
         return Provider::all();
     }
 
+    public function info(){
+
+        return Provider::with('TrainingBatches','TrainingBatches.training','TrainingBatches.training.trainingTitle')->whereHas('TrainingBatches', function ($query) {
+            $query->whereNotNull('startDate')
+            ->whereRaw('DATE_ADD(date(startDate), INTERVAL duration DAY) >=  CURDATE()');
+        })->get();
+
+    }
+
     public function store($data)
     {
         $providerData = array();

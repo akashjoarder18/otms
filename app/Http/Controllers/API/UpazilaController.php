@@ -32,8 +32,6 @@ class UpazilaController extends Controller
      *
      * @return Json Response
      */
-
-     
     public function index($code = null)
     {
         try {
@@ -54,6 +52,7 @@ class UpazilaController extends Controller
             ]);
         }
     }
+
     /**
      * Handle Course Upazila details
      * @return Json Response
@@ -74,6 +73,7 @@ class UpazilaController extends Controller
             ]);
         }
     }
+
     /**
      * Handle Course Upazila request
      *
@@ -136,7 +136,6 @@ class UpazilaController extends Controller
      */
     public function update(Upazila $upazila, UpdateUpazilaRequest $request)
     {
-
         try {
             $data = $request->all();
             $this->upazilaRepository->update($upazila, $data);

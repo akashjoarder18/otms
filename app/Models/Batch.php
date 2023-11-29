@@ -9,6 +9,7 @@ class Batch extends Model
 {
     use HasFactory;
 
-    protected $table = "batches";
+    protected $table = "training_batches";
+    //protected $table = "batches";
     protected $guarded = [];
 }

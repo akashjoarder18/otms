@@ -16,6 +16,7 @@ class Inspection extends Model
         return $this->belongsTo(TrainingBatch::class, 'batch_id');
     }
 
+
     public function createdBy()
     {
         return $this->belongsTo(Profile::class, 'created_by');

@@ -6,6 +6,8 @@ interface ProviderRepositoryInterface
 {
     public function all();
 
+    public function info();
+
     public function details($id);
 
     public function store($data);

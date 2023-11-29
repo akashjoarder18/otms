@@ -132,7 +132,7 @@ class AdminController extends Controller
     public function store(Request $request)
     {
         try {
-            $data = $request->all();    
+            $data = $request->all();
             $validator = Validator::make($request->all(), [
                 "email" => "required|email",
                 "role_id" => "required",
@@ -145,10 +145,10 @@ class AdminController extends Controller
                 ]);
             }
 
-            $email_is_exists = Profile::where('email',$data['email'])->first();
-            if($email_is_exists){
+            $email_is_exists = Profile::where('email', $data['email'])->first();
+            if ($email_is_exists) {
                 $providerId = null;
-                if($data['provider_id']){
+                if ($data['provider_id']) {
                     $providerId = $data['provider_id'];
                 }
                 $userType = UserType::create([
@@ -158,13 +158,13 @@ class AdminController extends Controller
                     'upazila_id' => $data['upazila_id'],
                     'provider_id' => $providerId,
                 ]);
-            }else{
+            } else {
                 return response()->json([
                     'error' => true,
                     'message' => 'Invalid Authentications',
                 ]);
             }
-            
+
             return response()->json([
                 'success' => true,
                 'message' => 'Admin User Added Successfully',
@@ -182,21 +182,12 @@ class AdminController extends Controller
      * User Show with logs
      *
      */
-    public function show($userId)
+    public function show($userProfileId)
     {
         $userData = [];
 
-        $user = $this->adminRepository->details($userId);
+        $user = $this->adminRepository->userProfile($userProfileId);
         $userData = $user;
-
-        $lastLogin = null;
-        $userLogs = $this->adminRepository->user_logs($userId);
-        if (!is_null($userLogs)) {
-            $lastLogin = $userLogs->first();
-        }
-
-        $userData['userLogs'] = $userLogs;
-        $userData['lastLogin'] = $lastLogin;
 
         return response([
             'success' => true,
@@ -241,20 +232,20 @@ class AdminController extends Controller
             ]);
         }
         $userTypeData = array();
-        $email_is_exists = Profile::where('email',$data['email'])->first();
-            if($email_is_exists){
-                $userTypeData['role_id'] = $data['role_id'];
-                $userTypeData['ProfileId'] = $email_is_exists->id;
-                $userTypeData['district_id'] = $data['district_id'];
-                $userTypeData['upazila_id'] = $data['upazila_id'];
-                $userTypeData['provider_id'] = $data['provider_id'];
-                $adminUpdate = $this->adminRepository->update($userId,$userTypeData);
-            }else{
-                return response()->json([
-                    'error' => true,
-                    'message' => 'Invalid Authentications',
-                ]);
-            }
+        $email_is_exists = Profile::where('email', $data['email'])->first();
+        if ($email_is_exists) {
+            $userTypeData['role_id'] = $data['role_id'];
+            $userTypeData['ProfileId'] = $email_is_exists->id;
+            $userTypeData['district_id'] = $data['district_id'];
+            $userTypeData['upazila_id'] = $data['upazila_id'];
+            $userTypeData['provider_id'] = $data['provider_id'];
+            $adminUpdate = $this->adminRepository->update($userId, $userTypeData);
+        } else {
+            return response()->json([
+                'error' => true,
+                'message' => 'Invalid Authentications',
+            ]);
+        }
         if ($adminUpdate) {
             return response()->json([
                 'success' => true,

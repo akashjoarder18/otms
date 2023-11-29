@@ -10,21 +10,47 @@ use App\Models\Inspection;
 class InspectionController extends Controller
 {
     use UtilityTrait;
-    public function index()
+    public function index(Request $request)
     {
         try {
-            $inspaction = Inspection::with('batch.training.trainingTitle', 'createdBy')->paginate(15);
-        } catch (\Throwable $th) {
+            $perPage = $request->input('per_page', 500);
+            $search = $request->input('search', '');
+            $dateFilter = $request->input('date_filter', '');
+            $query = Inspection::with('batch.training.trainingTitle', 'batch.provider', 'createdBy');
+
+            if ($search) {
+                $query->where(function ($innerQuery) use ($search) {
+                    $innerQuery->whereHas('batch.training.trainingTitle', function ($titleQuery) use ($search) {
+                        $titleQuery->where('Name', 'like', "%$search%")
+                            ->orWhere('NameEn', 'like', "%$search%");
+                    })
+                        ->orWhereHas('createdBy', function ($createdByQuery) use ($search) {
+                            $createdByQuery
+                                ->where('KnownAs', 'like', "%$search%")
+                                ->orWhere('KnownAsBangla', 'like', "%$search%")
+                                ->orWhere('Phone', 'like', "%$search%");
+                        })
+                        ->orWhereHas('batch', function ($batchQuery) use ($search) {
+                            $batchQuery->where('batchCode', 'like', "%$search%");
+                        })
+                        ->orWhereHas('batch.provider', function ($batchQuery) use ($search) {
+                            $batchQuery->where('name', 'like', "%$search%");
+                        });
+                });
+            }
+
+            $inspections = $query->paginate($perPage);
+
+            return response()->json([
+                'success' => true,
+                'items' => $inspections
+            ]);
+        } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'error' => true,
-                'message' => $th->getMessage(),
-            ]);
+                'message' => 'Error processing the request: ' . $e->getMessage()
+            ], 500); // You can customize the status code based on your requirements
         }
-        return response()->json([
-            'success' => true,
-            'data' => $inspaction,
-        ]);
     }
     public function store(Request $request)
     {

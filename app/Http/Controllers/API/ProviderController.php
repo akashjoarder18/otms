@@ -143,6 +143,24 @@ class ProviderController extends Controller
         }
     }
 
+
+    public function providerBatches()
+    {     
+
+        try {
+            $providers = $this->providerRepository->info();
+            return response()->json([
+                'success' => true,
+                'data' => $providers,
+            ]);
+        } catch (JWTException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ]);
+        }
+    }
+
     /**
      * Delete Provider data
      *

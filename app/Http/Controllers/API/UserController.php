@@ -120,11 +120,20 @@ class UserController extends Controller
      */
     public function show($userId)
     {
-
-        return response([
-            'success' => true,
-            'error' => false
-        ]);
+        try {
+            
+            return response([
+                'success' => true,
+                'error' => false,
+                'data' => $userId
+            ]);
+        } catch (\Throwable $th) {
+            return response([
+                'success' => false,
+                'error' => true,
+                'message' => $th->getMessage()
+            ]);
+        }
     }
 
     /**

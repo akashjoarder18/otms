@@ -13,7 +13,7 @@ class TrainingBatch extends Model
 
     public function Provider()
     {
-        return $this->belongsTo(Provider::class);
+        return $this->belongsTo(Provider::class, 'provider_id', 'id');
     }
 
     public function training()

@@ -45,6 +45,13 @@ class AdminRepository implements AdminRepositoryInterface
             ->first();
     }
 
+    public function userProfile($ProfileId)
+    {
+        return UserType::with('role', 'profile', 'district', 'upazila', 'provider')
+            ->where('ProfileId', $ProfileId)
+            ->first();
+    }
+
     public function destroy($id)
     {
         $user_type = UserType::where('user_id', $id)->first();
