@@ -3,14 +3,13 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\TrainerBatchesRequest;
+use App\Models\ProvidersTrainer;
 use App\Models\User;
 use App\Models\UserType;
-use App\Models\ProvidersTrainer;
-use App\Http\Requests\TrainerBatchesRequest;
-use App\Models\TrainerProfile;
+use App\Traits\UtilityTrait;
 use Illuminate\Http\Request;
 use Tymon\JWTAuth\Exceptions\JWTException;
-use App\Traits\UtilityTrait;
 
 class TrainerController extends Controller
 {
@@ -21,15 +20,16 @@ class TrainerController extends Controller
             $user = auth()->user();
             $userType = $this->authUser($user->email);
 
-            $trainers = UserType::with('profile', 'role')->where('provider_id', $userType->provider_id)->whereHas('role', function ($query) {
+            $trainers = UserType::with('profile', 'profile.trainerProfile', 'role')->where('provider_id', $userType->provider_id)->whereHas('role', function ($query) {
                 $query->where('name', '=', 'trainer')
                     ->orWhere('name', '=', 'Trainer');
-            })->get();
+            })->whereHas('profile.trainerProfile')->get();
+          
 
             return response()->json([
                 'success' => true,
                 'error' => false,
-                'data' => $trainers
+                'data' => $trainers,
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -76,7 +76,7 @@ class TrainerController extends Controller
             return response()->json([
                 'success' => true,
                 'error' => false,
-                'message' =>  __('trainer.trainer_link_batch_success'),
+                'message' => __('trainer.trainer_link_batch_success'),
             ]);
         } catch (JWTException $e) {
             return response()->json([

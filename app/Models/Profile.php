@@ -16,4 +16,9 @@ class Profile extends Model
     {
         return $this->hasOne(ProvidersBatchCoordinator::class, 'ProfileId', 'id');
     }
+
+    public function trainerProfile()
+    {
+        return $this->hasMany(TrainerProfile::class, 'ProfileId', 'id');
+    }
 }
