@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Models\BatchScheduleDetail;
 use App\Models\DevelopmentPartner;
 use App\Models\Provider;
 use App\Models\TrainingBatch;
@@ -15,7 +16,29 @@ class BatchController extends Controller
 {
     use UtilityTrait;
 
-    //
+    public function runningBatch(Request $request)
+    {
+        try {
+            $batches = BatchScheduleDetail::with('schedule.trainingBatch.Provider', 'schedule.trainingBatch.training.title')
+                ->whereHas('schedule.trainingBatch', function ($query) use ($request) {
+                    if ($request->search != '') {
+                        $query->where('batchCode', 'like', '%' . $request->search . '%');
+                    }
+                })
+                ->where('status', 2)
+                ->paginate();
+
+            return response()->json([
+                'success' => true,
+                'data' => $batches,
+            ]);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'success' => false,
+                'message' => $th->getMessage(),
+            ]);
+        }
+    }
     public function index(Request $request)
     {
         try {
