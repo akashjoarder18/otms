@@ -15,6 +15,7 @@ use App\Http\Controllers\API\DistrictController;
 use App\Http\Controllers\API\UpazilaController;
 use App\Http\Controllers\API\ProviderController;
 use App\Http\Controllers\API\CommitteeController;
+use App\Http\Controllers\API\CoordinatorController;
 use App\Http\Controllers\API\PreliminarySelectionController;
 use App\Http\Controllers\API\ProviderBatchesController;
 use App\Http\Controllers\API\TraineeEnrollController;
@@ -257,6 +258,8 @@ Route::group(['middleware' => 'api'], function ($routes) {
         Route::get('/', [PermissionController::class, 'index']);
         Route::post('/create', [PermissionController::class, 'store']);
         Route::get('/role', [PermissionController::class, 'permissions']);
+        Route::get('/edit-permission/{permission}', [PermissionController::class, 'editPermission']);
+        Route::patch('/{permission}/update', [PermissionController::class, 'updatePermission']);
     });
     Route::group(['middleware' => 'auth.jwt', 'prefix' => 'dashboardtotal'], function () {
         Route::get('/superadmin', [DashboardController::class, 'dashboardTotalsuoeradmin'])->name('dash.super');
@@ -270,7 +273,15 @@ Route::group(['middleware' => 'api'], function ($routes) {
         Route::get('/upazilaslist', [DashboardController::class, 'getAllupazilas'])->name('upazilas');
         Route::get('/partnerslist', [DashboardController::class, 'getAllpartners'])->name('partners');
         Route::get('/trainerslist', [DashboardController::class, 'getAlltrainers'])->name('trainers');
-        Route::get('/traineeslist', fn() => 'Waiting......')->name('trainees');
-        Route::get('/allowancelist', fn() => 'Waiting......')->name('allowance');
+        Route::get('/traineeslist', fn () => 'Waiting......')->name('trainees');
+        Route::get('/allowancelist', fn () => 'Waiting......')->name('allowance');
+    });
+
+    /**
+     * Permission api routes
+     */
+    Route::group(['middleware' => 'auth.jwt', 'prefix' => 'coordinators'], function () {
+        Route::get('/', [CoordinatorController::class, 'index']);
+        Route::get('/linkBatch/{batch_id}', [CoordinatorController::class, 'linkBatch']);
     });
 });

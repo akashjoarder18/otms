@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StorePermissionRequest;
 use App\Http\Requests\UpdatePermissionRequest;
+use App\Models\Permission;
 use App\Models\Permissions;
 use App\Models\Role;
 use App\Repositories\Interfaces\PermissionRepositoryInterface;
@@ -17,7 +18,7 @@ use App\Traits\UtilityTrait;
 
 class PermissionController extends Controller
 {
-   
+
     /*
      * Handle Bridge Between Database and Business layer
      */
@@ -48,9 +49,8 @@ class PermissionController extends Controller
                 'message' => $e->getMessage(),
             ]);
         }
-
     }
-    
+
     /**
      * Handle Course Provider details
      * 
@@ -74,7 +74,8 @@ class PermissionController extends Controller
         }
     }
 
-    public function permissions(){
+    public function permissions()
+    {
 
         try {
             $user = auth()->user();
@@ -86,7 +87,7 @@ class PermissionController extends Controller
                     ->join('permissions', 'permissions.id', '=', 'role_has_permissions.permission_id')
                     ->where('roles.id', '=', $userType->role->id)
                     ->get();
-    
+
                 $route_permissions = $permissions->pluck('name')->toArray();
             }
             return response()->json([
@@ -116,7 +117,7 @@ class PermissionController extends Controller
             $route_permissions = $permissions->pluck('name')->toArray();
         }*/
     }
-     /**
+    /**
      * Handle Course Provider Edit request
      *
      * @param Provider $provider
@@ -126,7 +127,7 @@ class PermissionController extends Controller
     public function edit(Permission $permission)
     {
         try {
-            $permission = $this->permissionRepository->find($permission->id);            
+            $permission = $this->permissionRepository->find($permission->id);
             return response()->json([
                 'success' => true,
                 'data' => $permission,
@@ -173,7 +174,7 @@ class PermissionController extends Controller
      */
     public function update(Provider $provider, UpdateProviderRequest $request)
     {
-        try {            
+        try {
             $data = $request->all();
             $this->providerRepository->update($provider, $data);
             return response()->json([
@@ -206,6 +207,55 @@ class PermissionController extends Controller
                 'message' => __('provider-list.provider_deleted'),
             ]);
         } catch (JWTException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ]);
+        }
+    }
+
+    /**
+     * 
+     * Edit Permission 
+     * 
+     */
+
+    public function editPermission(Permission $permission)
+    {
+        try {
+            return response()->json([
+                'success' => true,
+                'data' => $permission,
+            ]);
+        } catch (JWTException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ]);
+        }
+    }
+
+    /**
+     * Update Permission data
+     *
+     * @param Permission $permission
+     * @param UpdatePermissionRequest $request
+     *
+     * @return json Response
+     */
+    public function updatePermission(Permission $permission, UpdatePermissionRequest $request)
+    {
+        try {
+            $data = $request->all();
+            // $this->providerRepository->update($provider, $data);
+            $permission->update($data);
+            return response()->json([
+                'success' => true,
+                'data' => $permission->name,
+                'message' => 'Permission Updated Successfully',
+            ]);
+        } catch (JWTException $e) {
+
             return response()->json([
                 'success' => false,
                 'message' => $e->getMessage(),

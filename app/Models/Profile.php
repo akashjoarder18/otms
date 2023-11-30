@@ -11,4 +11,9 @@ class Profile extends Model
 
     protected $table = "profiles";
     protected $guarded = [];
+
+    public function coordinator()
+    {
+        return $this->hasOne(ProvidersBatchCoordinator::class, 'ProfileId', 'id');
+    }
 }

@@ -21,7 +21,7 @@ class TrainerController extends Controller
             $user = auth()->user();
             $userType = $this->authUser($user->email);
 
-            $trainers = UserType::with('profile','role')->where('provider_id',$userType->provider_id)->whereHas('role', function ($query) {
+            $trainers = UserType::with('profile', 'role')->where('provider_id', $userType->provider_id)->whereHas('role', function ($query) {
                 $query->where('name', '=', 'trainer')
                     ->orWhere('name', '=', 'Trainer');
             })->get();
@@ -38,8 +38,6 @@ class TrainerController extends Controller
             ]);
         }
     }
-
-    // trainer store
 
     public function store(TrainerBatchesRequest $request)
     {
@@ -60,7 +58,10 @@ class TrainerController extends Controller
             }
 
             foreach ($trainer_ids_array as $key => $trainer_id) {
-                $trainer_batch = ProvidersTrainer::where('ProfileId', $trainer_id)->where('provider_id', $provider_id)->where('batch_id', $batch_id)->first();
+                $trainer_batch = ProvidersTrainer::where('ProfileId', $trainer_id)
+                    ->where('provider_id', $provider_id)
+                    ->where('batch_id', $batch_id)
+                    ->first();
                 if ($trainer_batch) {
                     continue;
                 } else {
