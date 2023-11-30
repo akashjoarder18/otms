@@ -87,6 +87,7 @@ class AttendanceController extends Controller
         $schedule_detail->update([
             'start_time' => Carbon::now()->format('H:i:s'),
             'streaming_link' => $request->streaming_link,
+            'static_link' => $request->static_link,
             'status' => 2,
         ]);
 
