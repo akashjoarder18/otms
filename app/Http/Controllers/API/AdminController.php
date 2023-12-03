@@ -31,7 +31,7 @@ class AdminController extends Controller
 
     /**
      *
-     * All Admin Users
+     * All Admin Users info
      *
      */
     public function index()
