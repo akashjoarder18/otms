@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\API;
 
+use App\Models\TrainingBatchSchedule;
 use Carbon\Carbon;
 use App\Http\Controllers\Controller;
 use App\Models\Batch;
@@ -306,276 +307,139 @@ class DashboardController extends Controller
 
     public function dashboardTotalsuoeradmin(Request $request)
     {
+        $user = auth()->user();
+        $userType = $this->authUser($user->email);
 
+        $data = [];
         try {
-            $district = $request->input('district', '');
-            $upazila = $request->input('upazila', '');
-            $division = $request->input('division', '');
-            $usertype = $request->input('usertype', '');
-            $profileId = $request->input('profileId', '');
-
-            $filter = '';
-
-            if ($division) {
-                $filter .= "$division";
-            }
-
-            if ($district) {
-                $filter .= "-$district";
-            }
-
-            if ($upazila) {
-                $filter .= "-$upazila";
-            }
-
-            // dd($filter);
-            if ($usertype == "superadmin") {
-                $trainingBatchall = TrainingBatch::all();
-                $filteredBatch = TrainingBatch::where('GEOCode', 'like', "%$filter%");
-                $runingBatch = $filteredBatch->whereNotNull('startDate')
-                    ->whereRaw('date(startDate) <=  CURDATE()')
-                    ->whereRaw('DATE_ADD(date(startDate), INTERVAL duration DAY) >=  CURDATE()')
+            if (strtolower($userType->role->name) == "superadmin") {
+                $data['total_batch'] = TrainingBatch::count();
+                $data['running_batch'] = TrainingBatchSchedule::whereHas('isStatus1')
+                    ->whereHas('isStatus2')
                     ->count();
-                $batchCount = $filteredBatch->count();
-                $districtCount = District::where('Code', '=', $district)->count();
-                $upazilaCount = Upazila::where('Code', '=', $upazila)->count();
-                $divisionCount = Division::where('Code', '=', $division)->count();
-                $divisionCount = Division::where('Code', '=', $division)->count();
 
-                $data = [
-                    "provider" => Provider::count(),
-                    "applicant" => TrainingApplicant::where('IsTrainee', 1)->count(),
-                    "filterBatch" => $batchCount,
-                    "runingBatch" => $runingBatch,
-                    'completeBatch' => 0,
-                    "district" => $districtCount ?: District::count(),
-                    "upazila" => $upazilaCount ?: Upazila::count(),
-                    "division" => $divisionCount ?: Division::count(),
-                    "totalBatchs" => $trainingBatchall->count(),
-                    "totaltrainer" => TrainerProfile::count(),
-                ];
-                # code...
-            } elseif ($usertype == "Admin") {
+                $data['total_trainee'] = TrainingApplicant::where('isTrainee', 1)
+                    ->count();
+
+                $data['total_attend_today'] = ClassAttendance::where('is_present', 1)
+                    ->whereHas('scheduleDetail', function ($query) {
+                        $query->where('date', Carbon::now()->format('Y-m-d'));
+                    })
+                    ->count();
+                $data['total_absent_today'] = ClassAttendance::where('is_present', '0')
+                    ->whereHas('scheduleDetail', function ($query) {
+                        $query->where('date', Carbon::now()->format('Y-m-d'));
+                    })
+                    ->count();
+
+                $data['total_attend_week'] = ClassAttendance::where('is_present', 1)
+                    ->whereHas('scheduleDetail', function ($query) {
+                        $query->where('date', '>=', Carbon::now()->subWeek()->format('Y-m-d'));
+                    })
+                    ->count();
+
+                $data['total_absent_week'] = ClassAttendance::where('is_present', '0')
+                    ->whereHas('scheduleDetail', function ($query) {
+                        $query->where('date', '>=', Carbon::now()->subWeek()->format('Y-m-d'));
+                    })
+                    ->count();
+
+                $data['total_attend_month'] = ClassAttendance::where('is_present', 1)
+                    ->whereHas('scheduleDetail', function ($query) {
+                        $query->where('date', '>=', Carbon::now()->subMonth()->format('Y-m-d'));
+                    })
+                    ->count();
+
+                $data['total_absent_month'] = ClassAttendance::where('is_present', '0')
+                    ->whereHas('scheduleDetail', function ($query) {
+                        $query->where('date', '>=', Carbon::now()->subMonth()->format('Y-m-d'));
+                    })
+                    ->count();
+
+                $datap['total_dropout'] = TrainingApplicant::where('isDroppedOut', 1)
+                    ->count();
+
+                $data['total_vendor'] = Provider::count();
+                $data['total_allownce_paid'] = 0;
+                $data['total_allownce_remaining'] = 0;
+                $data['total_freelancer'] = 0;
+
+                $data['total_upazila'] = TrainingBatch::selectRaw('COUNT(DISTINCT(RIGHT(GEOCode, 2))) as total_upazila')->first()->total_upazila ?? 0;
+
+                $data['total_division'] = TrainingBatch::selectRaw('COUNT(DISTINCT(LEFT(GEOCode, 2))) as total_division')->first()->total_division ?? 0;
+
+                $data['total_district'] = TrainingBatch::selectRaw('COUNT(DISTINCT(SUBSTRING(GEOCode, 4,2))) AS total_district')->first()->total_district ?? 0;
+
+
+            } elseif (strtolower($userType->role->name) == "admin") {
                 // division 
-                $userType = UserType::where('profileId', $profileId)->first();
-                if ($userType) {
-                    $districtId = $userType->district->Code;
-                    // dd($districtId);
-
-                    $trainingBatchall = TrainingBatch::all();
-                    $filteredBatch = TrainingBatch::where('GEOCode', 'like', "%$districtId%");
-                    $batchCount = $filteredBatch->count();
-
-                    $runingBatch = $filteredBatch->whereNotNull('startDate')
-                        ->whereRaw('date(startDate) <=  CURDATE()')
-                        ->whereRaw('DATE_ADD(date(startDate), INTERVAL duration DAY) >=  CURDATE()')
-                        ->count();
-                    $month = 11;
-                    $year = 2023;
-                    $firstDayOfMonth = Carbon::create($year, $month, 1)->startOfDay();
-                    $lastDayOfMonth = $firstDayOfMonth->copy()->endOfMonth();
-                    // dd($filteredBatch);
-                    $monthlyAttendance = ClassAttendance::whereBetween('created_at', [$firstDayOfMonth, $lastDayOfMonth])
-                        ->with('scheduleDetail')
-                        ->get();
-
-                    $attendanceSheet = [];
-                    for ($currentDay = $firstDayOfMonth->copy(); $currentDay->lte($lastDayOfMonth); $currentDay->addDay()) {
-                        $dailyAttendance = $monthlyAttendance->filter(function ($attendance) use ($currentDay) {
-                            return $attendance->created_at && $attendance->created_at->isSameDay($currentDay);
-                        });
-                        $attendanceSheet[$currentDay->format('Y-m-d')] = [
-                            'totalAttendance' => $dailyAttendance->count(),
-                            'details' => $dailyAttendance->map(function ($attendance) {
-                                return [
-                                    'schedule_detail_id' => $attendance->scheduleDetail->id,
-                                    'status' => $attendance->status,
-                                ];
-                            })->all(),
-                        ];
-                    }
-                    $totalAttendanceSum = 0;
-
-                    foreach ($attendanceSheet as $dayData) {
-                        $totalAttendanceSum += $dayData['totalAttendance'];
-                    }
-                    $districtCount = District::where('Code', '=', $districtId)->count();
-                    $upazilaCount = Upazila::where('Code', '=', $upazila)->count();
-                    $divisionCount = Division::where('Code', '=', $division)->count();
-                    $divisionCount = Division::where('Code', '=', $division)->count();
-
-                    $data = [
-                        "provider" => Provider::count(),
-                        "applicant" => TrainingApplicant::where('IsTrainee', 1)
-                            ->whereHas('profile', function ($query) use ($districtId) {
-                                $query->where('district_code', $districtId);
-                            })
-                            ->count(),
-                        "filterBatch" => $batchCount,
-                        "runingBatch" => $runingBatch,
-                        "district" => $districtCount,
-                        "totalAttendancebymonth" => $totalAttendanceSum,
-                        "upazila" => $upazilaCount ?: Upazila::count(),
-                        "division" => $divisionCount ?: Division::count(),
-                        "totalBatchs" => $trainingBatchall->count(),
-                        "totaltrainer" => TrainerProfile::count(),
-                    ];
-                } else {
-                    // Handle the case when no record is found
-                    dd('UserType record not found for profileId: ' . $profileId);
-                }
 
 
-            } elseif ($usertype == "DPD") {
-                // division 
-                //$userType = UserType::where('profileId', $profileId)->first();
-                $userType = Profile::where('id', $profileId)->first();
-                if ($userType) {
-                    $division_code = $userType->division_code;
-                    $trainingBatchall = TrainingBatch::all();
-                    $filteredBatch = TrainingBatch::where('GEOCode', 'like', "%$division_code%");
-                    $batchCount = $filteredBatch->count();
-
-                    $runingBatch = $filteredBatch->whereNotNull('startDate')
-                        ->whereRaw('date(startDate) <=  CURDATE()')
-                        ->whereRaw('DATE_ADD(date(startDate), INTERVAL duration DAY) >=  CURDATE()')
-                        ->count();
-
-                    $month = 11;
-                    $year = 2023;
-                    $firstDayOfMonth = Carbon::create($year, $month, 1)->startOfDay();
-                    $lastDayOfMonth = $firstDayOfMonth->copy()->endOfMonth();
-                    // dd($filteredBatch);
-                    $monthlyAttendance = ClassAttendance::whereBetween('created_at', [$firstDayOfMonth, $lastDayOfMonth])
-                        ->with('scheduleDetail')
-                        ->get();
-
-                    $attendanceSheet = [];
-                    for ($currentDay = $firstDayOfMonth->copy(); $currentDay->lte($lastDayOfMonth); $currentDay->addDay()) {
-                        $dailyAttendance = $monthlyAttendance->filter(function ($attendance) use ($currentDay) {
-                            return $attendance->created_at && $attendance->created_at->isSameDay($currentDay);
-                        });
-                        $attendanceSheet[$currentDay->format('Y-m-d')] = [
-                            'totalAttendance' => $dailyAttendance->count(),
-                            'details' => $dailyAttendance->map(function ($attendance) {
-                                return [
-                                    'schedule_detail_id' => $attendance->scheduleDetail->id,
-                                    'status' => $attendance->status,
-                                ];
-                            })->all(),
-                        ];
-                    }
-                    $totalAttendanceSum = 0;
-
-                    foreach ($attendanceSheet as $dayData) {
-                        $totalAttendanceSum += $dayData['totalAttendance'];
-                    }
+            } elseif (strtolower($userType->role->name) == "dpd") {
 
 
-
-
-
-                    $currentDateTime = Carbon::now();
-
-                    $runningSchedules = BatchScheduleDetail::where('start_time', '<=', $currentDateTime)
-                        ->where('end_time', '>=', $currentDateTime)
-                        ->get();
-
-                    $runningBatchIds = $runningSchedules->pluck('batch_id')->unique();
-
-                    $runningBatches = Batch::whereIn('id', $runningBatchIds)->get();
-
-                    $numberOfRunningBatches = $runningBatches->count();
-
-                    dd($numberOfRunningBatches);
-
-                    $districtCount = District::where('ParentCode', '=', $division_code)->count();
-                    $upazilaCount = Upazila::where('Code', '=', $upazila)->count();
-                    $divisionCount = Division::where('Code', '=', $division)->count();
-
-                    $data = [
-                        "provider" => Provider::count(),
-                        "applicant" => TrainingApplicant::where('IsTrainee', 1)
-                            ->whereHas('profile', function ($query) use ($division_code) {
-                                $query->where('division_code', $division_code);
-                            })
-                            ->count(),
-                        "filterBatch" => $batchCount,
-                        "totalAttendancebymonth" => $totalAttendanceSum,
-                        "runingBatch" => $runingBatch,
-                        "district" => $districtCount ?: District::count(),
-                        "upazila" => $upazilaCount ?: Upazila::count(),
-                        "division" => $divisionCount ?: Division::count(),
-                        "totalBatchs" => $trainingBatchall->count(),
-                        "totaltrainer" => TrainerProfile::count(),
-                    ];
-                } else {
-                    // Handle the case when no record is found
-                    dd('UserType record not found for profileId: ' . $profileId);
-                }
-
-
-            } elseif ($usertype == "DC") {
+            } elseif (strtolower($userType->role->name) == "dc") {
                 ///
 
-            } elseif ($usertype == "UNO") {
+            } elseif (strtolower($userType->role->name) == "uno") {
 
-            } elseif ($usertype == "PIUOfficer") {
+            } elseif (strtolower($userType->role->name) == "piuofficer") {
 
-            } elseif ($usertype == "Member") {
+            } elseif (strtolower($userType->role->name) == "member") {
 
-            } elseif ($usertype == "Trainee") {
+            } elseif (strtolower($userType->role->name) == "trainee") {
 
-            } elseif ($usertype == "Trainer") {
-
-
-            } elseif ($usertype == "Inspector") {
+            } elseif (strtolower($userType->role->name) == "trainer") {
 
 
-            } elseif ($usertype == "Provider") {
-
-                // division 
-                $userType = UserType::where('profileId', $profileId)->first();
-                if ($userType) {
-                    $districtId = $userType->district->Code;
-                    // dd($districtId);
-
-                    $trainingBatchall = TrainingBatch::all();
-                    $filteredBatch = TrainingBatch::where('GEOCode', 'like', "%$districtId%");
-                    $batchCount = $filteredBatch->count();
-
-                    $runingBatch = $filteredBatch->whereNotNull('startDate')
-                        ->whereRaw('date(startDate) <=  CURDATE()')
-                        ->whereRaw('DATE_ADD(date(startDate), INTERVAL duration DAY) >=  CURDATE()')
-                        ->count();
-
-                    $districtCount = District::where('Code', '=', $districtId)->count();
-                    $upazilaCount = Upazila::where('Code', '=', $upazila)->count();
-                    $divisionCount = Division::where('Code', '=', $division)->count();
-                    $divisionCount = Division::where('Code', '=', $division)->count();
-
-                    $data = [
-                        "provider" => Provider::count(),
-                        "applicant" => TrainingApplicant::where('IsTrainee', 1)
-                            ->whereHas('profile', function ($query) use ($districtId) {
-                                $query->where('district_code', $districtId);
-                            })
-                            ->count(),
-                        "filterBatch" => $batchCount,
-                        "runingBatch" => $runingBatch,
-                        "district" => $districtCount ?: District::count(),
-                        "upazila" => $upazilaCount ?: Upazila::count(),
-                        "division" => $divisionCount ?: Division::count(),
-                        "totalBatchs" => $trainingBatchall->count(),
-                        "totaltrainer" => TrainerProfile::count(),
-                    ];
-                } else {
-                    // Handle the case when no record is found
-                    dd('UserType record not found for profileId: ' . $profileId);
-                }
+            } elseif (strtolower($userType->role->name) == "Inspector") {
 
 
-            } elseif ($usertype == "Coordinator") {
+            } elseif (strtolower($userType->role->name) == "provider") {
+                // A)Total batch b) Running batch c) Total Course coordinator d) Total Trainer e) Total trainee f) Course material g) Successful Freelancer h) Present trainee today 
+                $provider_id = $userType->provider_id;
+
+                $data['total_batch'] = TrainingBatch::where('provider_id', $provider_id)->count();
+
+                $data['running_batch'] = TrainingBatchSchedule::whereHas('isStatus1')
+                    ->whereHas('isStatus2')
+                    ->whereHas('trainingBatch', function ($query) use ($provider_id) {
+                        $query->where('provider_id', $provider_id);
+                    })
+                    ->count();
+
+                $data['total_coordinator'] = 0;
+                $data['total_trainer'] = ProvidersTrainer::where('provider_id', $provider_id)
+                    ->selectRaw('COUNT(DISTINCT(ProfileId)) as total_trainer')
+                    ->first()->total_trainer ?? 0;
+
+                $data['total_trainee'] = TrainingApplicant::where('isTrainee', 1)
+                    ->whereHas('trainingBatch', function ($query) use ($provider_id) {
+                        $query->where('provider_id', $provider_id);
+                    })
+                    ->count();
+
+                $data['course_material'] = 0;
+                $data['total_freelancer'] = 0;
+
+                $data['total_attend_today'] = ClassAttendance::where('is_present', 1)
+                    ->whereHas('scheduleDetail', function ($query) {
+                        $query->where('date', Carbon::now()->format('Y-m-d'));
+                    })
+                    ->whereHas('scheduleDetail.schedule.trainingBatch', function ($query) use ($provider_id) {
+                        $query->where('provider_id', $provider_id);
+                    })
+                    ->count();
+                $data['total_absent_today'] = ClassAttendance::where('is_present', '0')
+                    ->whereHas('scheduleDetail', function ($query) {
+                        $query->where('date', Carbon::now()->format('Y-m-d'));
+                    })
+                    ->whereHas('scheduleDetail.schedule.trainingBatch', function ($query) use ($provider_id) {
+                        $query->where('provider_id', $provider_id);
+                    })
+                    ->count();
+
+            } elseif (strtolower($userType->role->name) == "coordinator") {
 
 
             } else {
@@ -583,7 +447,10 @@ class DashboardController extends Controller
             }
 
 
-            return response()->json(['items' => $data]);
+            return response()->json([
+                'success' => true,
+                'data' => $data
+            ]);
         } catch (\Exception $e) {
             // Handle the exception, log it, or return an error response
             return response()->json(['error' => 'An error occurred while processing the request.']);
