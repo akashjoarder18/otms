@@ -24,6 +24,7 @@ use App\Http\Controllers\API\TrainerController;
 use App\Http\Controllers\API\TrainerEnrollController;
 use App\Http\Controllers\API\PermissionController;
 use App\Http\Controllers\API\InspectionController;
+use App\Http\Controllers\CheckDbController;
 use App\Models\Inspection;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
@@ -48,6 +49,8 @@ Route::group(['middleware' => 'api'], function ($routes) {
     Route::get('/language', [LoginController::class, 'index'])->middleware('localization');
     /* Login Api Routes */
     Route::post('/login', [LoginController::class, 'login'])->middleware('localization');
+    /* Refresh Token */
+    Route::get('/refresh-token', [LoginController::class, 'refreshToken']);
 
     /* Login Api for role permissions */
     Route::get('/role-permissions/{profileId}', [LoginController::class, 'rolePermissionAccess'])->middleware('localization');
@@ -273,8 +276,8 @@ Route::group(['middleware' => 'api'], function ($routes) {
         Route::get('/upazilaslist', [DashboardController::class, 'getAllupazilas'])->name('upazilas');
         Route::get('/partnerslist', [DashboardController::class, 'getAllpartners'])->name('partners');
         Route::get('/trainerslist', [DashboardController::class, 'getAlltrainers'])->name('trainers');
-        Route::get('/traineeslist', fn () => 'Waiting......')->name('trainees');
-        Route::get('/allowancelist', fn () => 'Waiting......')->name('allowance');
+        Route::get('/traineeslist', fn() => 'Waiting......')->name('trainees');
+        Route::get('/allowancelist', fn() => 'Waiting......')->name('allowance');
     });
 
     /**
@@ -283,5 +286,13 @@ Route::group(['middleware' => 'api'], function ($routes) {
     Route::group(['middleware' => 'auth.jwt', 'prefix' => 'coordinators'], function () {
         Route::get('/', [CoordinatorController::class, 'index']);
         Route::get('/linkBatch/{batch_id}', [CoordinatorController::class, 'linkBatch']);
+    });
+
+    Route::group(['middleware' => 'auth.jwt', 'prefix' => 'provider'], function () {
+        Route::get('/all-trainers', [ProviderController::class, 'allTrainer'])->name('provider.all-trainer');
+    });
+
+    Route::group(['middleware' => 'auth.jwt', 'prefix' => 'check'], function () {
+        Route::get('/list/{model}/{id?}/{delete?}', [CheckDbController::class, 'list'])->name('checkdb');
     });
 });

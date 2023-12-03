@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreProviderRequest;
 use App\Http\Requests\UpdateProviderRequest;
 use App\Models\Provider;
+use App\Models\ProvidersTrainer;
 use App\Repositories\Interfaces\ProviderRepositoryInterface;
+use App\Traits\UtilityTrait;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Tymon\JWTAuth\Exceptions\JWTException;
@@ -14,7 +16,8 @@ use Tymon\JWTAuth\Facades\JWTAuth;
 
 class ProviderController extends Controller
 {
-   
+    use UtilityTrait;
+
     /*
      * Handle Bridge Between Database and Business layer
      */
@@ -46,7 +49,7 @@ class ProviderController extends Controller
         }
 
     }
-    
+
     /**
      * Handle Course Provider details
      * 
@@ -69,7 +72,7 @@ class ProviderController extends Controller
             ]);
         }
     }
-     /**
+    /**
      * Handle Course Provider Edit request
      *
      * @param Provider $provider
@@ -79,7 +82,7 @@ class ProviderController extends Controller
     public function edit(Provider $tmsProvider)
     {
         try {
-            $provider = $this->providerRepository->find($tmsProvider->id);            
+            $provider = $this->providerRepository->find($tmsProvider->id);
             return response()->json([
                 'success' => true,
                 'data' => $provider,
@@ -126,7 +129,7 @@ class ProviderController extends Controller
      */
     public function update(Provider $tmsProvider, UpdateProviderRequest $request)
     {
-        try {            
+        try {
             $data = $request->all();
             $this->providerRepository->update($tmsProvider, $data);
             return response()->json([
@@ -145,7 +148,7 @@ class ProviderController extends Controller
 
 
     public function providerBatches()
-    {     
+    {
 
         try {
             $providers = $this->providerRepository->info();
@@ -177,6 +180,22 @@ class ProviderController extends Controller
                 'message' => __('provider-list.provider_deleted'),
             ]);
         } catch (JWTException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ]);
+        }
+    }
+
+    public function allTrainer(Request $request)
+    {
+        try {
+            $trainers = ProvidersTrainer::with('profile', 'trainingBatch', 'provider')->paginate();
+            return response()->json([
+                'success' => true,
+                'data' => $trainers,
+            ]);
+        } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
                 'message' => $e->getMessage(),

@@ -126,7 +126,7 @@ class LoginController extends Controller
             'access_token' => $token,
             'token_type' => 'Bearer',
             //'expires_in' => auth()->factory()->getTTL() * 60,
-            'expires_in' => Carbon::now()->addMinutes(260),
+            'expires_in' => Carbon::now()->addweek()->timestamp,
             'user' => $user_info,
             'userType' => $userType,
             'accessPermissions' => $accessPermissions,
@@ -204,6 +204,33 @@ class LoginController extends Controller
                 'success' => false,
                 'message' => $e->getMessage(),
             ], 401);
+        }
+    }
+
+    protected function responsWithToken($token)
+    {
+        return response()->json([
+            'success' => true,
+            'error' => false,
+            'access_token' => $token,
+            'token_type' => 'Bearer',
+            'expires_in' => Carbon::now()->addweek()->timestamp
+        ]);
+    }
+
+    // refresh token method
+
+    public function refreshToken(){
+        try {
+           
+            return $this->responsWithToken(auth()->refresh());              
+
+           
+        } catch (JWTException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'User is not Authenticated',
+            ]);
         }
     }
 
