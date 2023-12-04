@@ -19,7 +19,7 @@ class TrainingApplicant extends Model
 
     public function trainingBatch()
     {
-        return $this->belongsTo(TrainingBatch::class, 'BatchId');
+        return $this->hasOne(TrainingBatch::class, 'id', 'BatchId');
     }
 
     public function trainingTitle()
