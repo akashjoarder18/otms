@@ -19,7 +19,20 @@ class TrainingBatchSchedule extends Model
     {
         return $this->belongsTo(TrainingBatch::class);
     }
-
+    public function scheduleDetails()
+    {
+        return $this->hasMany(BatchScheduleDetail::class, 'batch_schedule_id');
+    }
+    public function isStatus1()
+    {
+        return $this->hasOne(BatchScheduleDetail::class, 'batch_schedule_id')
+            ->where('status', 1);
+    }
+    public function isStatus2()
+    {
+        return $this->hasOne(BatchScheduleDetail::class, 'batch_schedule_id')
+            ->where('status', 2);
+    }
     /**
      * class time over or not check function 
      */

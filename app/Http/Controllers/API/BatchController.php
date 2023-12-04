@@ -39,7 +39,6 @@ class BatchController extends Controller
             ]);
         }
     }
-    
     public function index(Request $request)
     {
         try {
